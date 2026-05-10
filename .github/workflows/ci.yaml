@@ -22,11 +22,11 @@ jobs:
         uses: docker/setup-buildx-action@v4
       
       - 
-        name: Set short git commit SHA
-        id: vars
+        name: Run your script
         run: |
-          calculatedSha=$(git rev-parse --short ${{ github.sha }})
-          echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
+          github_sha_hash=${{ github.sha }}
+          github_sha_short="${github_sha_hash:0:7}"
+          echo "COMMIT_SHORT_SHA=$github_sha_short" >> $GITHUB_ENV
 
       - 
         name: Confirm git commit SHA output
