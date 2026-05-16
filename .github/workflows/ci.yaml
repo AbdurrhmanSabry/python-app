@@ -42,12 +42,15 @@ jobs:
       #   with:
       #     push: true
       #     tags: ${{ secrets.DOCKERHUB_USERNAME }}/python-app:${{ env.COMMIT_SHORT_SHA }}
+
       - 
         name: Configure Docker auth
+        env:
+          DOCKER_CONFIG: /tmp/.docker
         run: |
-          mkdir -p /kaniko/.docker
+          mkdir -p $DOCKER_CONFIG
 
-          cat > /kaniko/.docker/config.json <<EOF
+          cat > $DOCKER_CONFIG/config.json <<EOF
           {
             "auths": {
               "https://index.docker.io/v1/": {
@@ -60,10 +63,12 @@ jobs:
 
       - 
         name: Build and Push
+        env:
+          DOCKER_CONFIG: /tmp/.docker
         run: |
           /kaniko/executor \
-            --context "${GITHUB_WORKSPACE}" \
             --dockerfile "${GITHUB_WORKSPACE}/Dockerfile" \
+            --context "${GITHUB_WORKSPACE}" \
             --destination "${{ secrets.DOCKERHUB_USERNAME }}/python-app:${COMMIT_SHORT_SHA}" \
-            --custom-platform=linux/arm64 \
+            --custom-platform=linux/amd64 \
             --cache=true
