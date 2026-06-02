@@ -29,6 +29,7 @@ jobs:
           github_sha_hash=${{ github.sha }}
           github_sha_short="${github_sha_hash:0:7}"
           echo "COMMIT_SHORT_SHA=$github_sha_short" >> $GITHUB_ENV
+          echo "COMMIT_SHORT_SHA=$github_sha_short" >> $GITHUB_OUTPUT
 
       - 
         name: Confirm git commit SHA output
@@ -43,6 +44,8 @@ jobs:
   cd:
     runs-on: self-hosted
     needs: ci
+    env:
+      COMMIT_SHORT_SHA: ${{ needs.ci.outputs.COMMIT_SHORT_SHA }}
 
     steps:
       - name: Setup ArgoCD CLI
@@ -52,6 +55,18 @@ jobs:
           install -m 555 argocd-linux-amd64 "$RUNNER_TEMP/argocd/argocd"
           rm argocd-linux-amd64
           echo "$RUNNER_TEMP/argocd" >> "$GITHUB_PATH"
+      - name: Setup yq
+        env:
+          VERSION: v4.2.0
+          PLATFORM: linux_amd64
+        run: |
+          sudo apt update && sudo apt install -y wget
+          sudo wget https://github.com/mikefarah/yq/releases/download/${VERSION}/yq_${PLATFORM}.tar.gz -O - |\
+            sudo tar xz && sudo mv yq_${PLATFORM} /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
+
+      - name: Update the image tag in the Helm values file
+        run: |
+           sudo yq eval -i '.image.tag = ${{ env.COMMIT_SHORT_SHA }}' charts/python-app/values.yaml
 
       - name: argocd sync
         env:
@@ -65,3 +80,4 @@ jobs:
           argocd proj list
           argocd app list
           argocd app sync python-app
+          echo "Deployed image with tag: $COMMIT_SHORT_SHA"
