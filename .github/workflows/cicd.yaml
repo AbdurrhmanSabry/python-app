@@ -8,11 +8,8 @@ on:
       - main
 
 jobs:
-  docker:
-    runs-on:
-      - self-hosted
-      # - kubernetes
-      # - kaniko
+  ci:
+    runs-on: ubuntu-latest
 
     steps:
       -
@@ -42,3 +39,17 @@ jobs:
         with:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/python-app:${{ env.COMMIT_SHORT_SHA }}
+  
+  cd:
+    runs-on: self-hosted
+    needs: ci
+
+    steps:
+      - name: Argocd sync
+        run: |
+          argocd login argocd.example.com \
+            --insecure \
+            --grpc-web \
+            --username ${{ secrets.ARGOCD_USERNAME }} \ 
+            --password ${{ secrets.ARGOCD_PASSWORD }}
+          argocd app sync python-app
