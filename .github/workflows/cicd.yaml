@@ -55,12 +55,12 @@ jobs:
 
       - name: argocd sync
         env:
-          ARGOCD_SERVER: argocd.example.com
+          ARGOCD_SERVER: argocd-server.argocd.svc.cluster.local
           ARGOCD_OPTS: --grpc-web --insecure 
         run: |
           set -x
           argocd version
-          argocd login argocd.example.com  --grpc-web --insecure  \
+          argocd login $ARGOCD_SERVER  --grpc-web --insecure  \
             --username ${{ secrets.ARGOCD_USERNAME }} \ 
             --password ${{ secrets.ARGOCD_PASSWORD }}
           argocd proj list
