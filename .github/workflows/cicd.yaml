@@ -63,7 +63,7 @@ jobs:
           echo "$RUNNER_TEMP/argocd" >> "$GITHUB_PATH"
       - name: Setup yq
         env:
-          VERSION: v4.2.0
+          VERSION: v4.53.2
           PLATFORM: linux_amd64
         run: |
           sudo apt update && sudo apt install -y wget
