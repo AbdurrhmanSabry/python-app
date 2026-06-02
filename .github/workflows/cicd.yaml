@@ -10,7 +10,8 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
-
+    outputs:
+      COMMIT_SHORT_SHA: ${{ steps.get_commit_sha.outputs.COMMIT_SHORT_SHA }}
     steps:
       -
        uses: actions/checkout@v4
@@ -40,6 +41,7 @@ jobs:
         with:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/python-app:${{ env.COMMIT_SHORT_SHA }}
+    
   
   cd:
     runs-on: self-hosted
@@ -48,6 +50,9 @@ jobs:
       COMMIT_SHORT_SHA: ${{ needs.ci.outputs.COMMIT_SHORT_SHA }}
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Setup ArgoCD CLI
         run: |
           curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
