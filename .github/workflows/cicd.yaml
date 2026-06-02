@@ -45,11 +45,24 @@ jobs:
     needs: ci
 
     steps:
-      - name: Argocd sync
+      - name: Setup ArgoCD CLI
         run: |
-          argocd login argocd.example.com \
-            --insecure \
-            --grpc-web \
+          curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          mkdir -p "$RUNNER_TEMP/argocd"
+          install -m 555 argocd-linux-amd64 "$RUNNER_TEMP/argocd/argocd"
+          rm argocd-linux-amd64
+          echo "$RUNNER_TEMP/argocd" >> "$GITHUB_PATH"
+
+      - name: argocd sync
+        env:
+          ARGOCD_SERVER: argocd.example.com
+          ARGOCD_OPTS: --grpc-web --insecure 
+        run: |
+          set -x
+          argocd version
+          argocd login argocd.example.com  --grpc-web --insecure  \
             --username ${{ secrets.ARGOCD_USERNAME }} \ 
             --password ${{ secrets.ARGOCD_PASSWORD }}
+          argocd proj list
+          argocd app list
           argocd app sync python-app
