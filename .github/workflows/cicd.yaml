@@ -69,13 +69,33 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Cache ArgoCD CLI
+        id: cache-argocd
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/bin/argocd
+          key: argocd-${{ runner.arch }}-v3.4.4
+
       - name: Setup ArgoCD CLI
+        if: steps.cache-argocd.outputs.cache-hit != 'true'
         run: |
-          curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-          mkdir -p "$RUNNER_TEMP/argocd"
-          install -m 555 argocd-linux-amd64 "$RUNNER_TEMP/argocd/argocd"
-          rm argocd-linux-amd64
-          echo "$RUNNER_TEMP/argocd" >> "$GITHUB_PATH"
+          mkdir -p ~/.local/bin
+          curl -sSL -o ~/.local/bin/argocd \
+            https://github.com/argoproj/argo-cd/releases/download/v3.4.4/argocd-linux-arm64
+          chmod +x ~/.local/bin/argocd
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      # - name: Setup ArgoCD CLI
+      #   run: |
+      #     curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+      #     mkdir -p "$RUNNER_TEMP/argocd"
+      #     install -m 555 argocd-linux-amd64 "$RUNNER_TEMP/argocd/argocd"
+      #     rm argocd-linux-amd64
+      #     echo "$RUNNER_TEMP/argocd" >> "$GITHUB_PATH"
+      
+      - name: Verify ArgoCD
+        run: argocd version --client
+
       - name: Setup yq
         env:
           VERSION: v4.53.2
