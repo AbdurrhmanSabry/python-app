@@ -47,12 +47,16 @@ jobs:
   cd:
     runs-on: self-hosted
     needs: ci
+    permissions:
+      contents: write  
     env:
       COMMIT_SHORT_SHA: ${{ needs.ci.outputs.COMMIT_SHORT_SHA }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup ArgoCD CLI
         run: |
@@ -63,7 +67,7 @@ jobs:
           echo "$RUNNER_TEMP/argocd" >> "$GITHUB_PATH"
       - name: Setup yq
         env:
-          VERSION: v4.53.2
+          VERSION: v4.53.2c
           PLATFORM: linux_amd64
         run: |
           sudo apt update && sudo apt install -y wget
@@ -73,6 +77,17 @@ jobs:
       - name: Update the image tag in the Helm values file
         run: |
            sudo yq eval -i '.image.tag = strenv(COMMIT_SHORT_SHA)' charts/python-app/values.yaml
+      
+      - name: Commit files
+        run: |
+            git config --local user.email "github-actions[bot]"
+            git config --local user.name "github-actions[bot]"
+            git commit -a -m "Update the image tag to $COMMIT_SHORT_SHA"
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          branch: main
+
 
       - name: argocd sync
         env:
