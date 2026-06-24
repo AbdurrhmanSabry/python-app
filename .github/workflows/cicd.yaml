@@ -81,13 +81,14 @@ jobs:
           VERSION: v4.53.2
           PLATFORM: linux_amd64
         run: |
-          sudo apt update && sudo apt install -y wget
-          sudo wget https://github.com/mikefarah/yq/releases/download/${VERSION}/yq_${PLATFORM}.tar.gz -O - |\
-            sudo tar xz && sudo mv yq_${PLATFORM} /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
+          apt update &&  apt install -y wget
+          wget https://github.com/mikefarah/yq/releases/download/${VERSION}/yq_${PLATFORM}.tar.gz -O - |\
+          tar xz &&  mv yq_${PLATFORM} /usr/local/bin/yq &&  chmod +x /usr/local/bin/yq
 
       - name: Update the image tag in the Helm values file
         run: |
-           sudo yq eval -i '.image.tag = strenv(COMMIT_SHORT_SHA)' charts/python-app/values.yaml
+          yq eval -i '.image.tag = env(COMMIT_SHORT_SHA)' charts/python-app/values.yaml
+          git diff charts/python-app/values.yaml
       
       - name: Commit files
         run: |
