@@ -15,7 +15,7 @@ def info():
     	'time': datetime.datetime.now().strftime("%I:%M:%S%p  on %B %d, %Y"),
     	'hostname': socket.gethostname(),
         'message': f'You are doing great,3 little human! <3 From the Python app running on Kubernetes. built from Github Actions CI/CD pipeline. Keep up the good work! Commit SHA !2 from self hosted runners try 3 and 4 new synced from argocd 7',
-        'deployed_on': 'kubernetes'
+        'deployed_on': 'k8s cluster with argocd'
     })
 
 @app.route('/api/v1/healthz')
