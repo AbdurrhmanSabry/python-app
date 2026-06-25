@@ -24,6 +24,9 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -39,12 +42,15 @@ jobs:
       - 
         name: Confirm git commit SHA output
         run: echo ${{ env.COMMIT_SHORT_SHA }}
-      -
+      - 
         name: Build and push
         uses: docker/build-push-action@v7
         with:
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/python-app:${{ env.COMMIT_SHORT_SHA }}
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/python-app:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/python-app:buildcache,mode=max
       
       # - name: Run Trivy vulnerability scanner
       #   uses: aquasecurity/trivy-action@@v0.36.0
